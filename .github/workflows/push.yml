@@ -1,11 +1,11 @@
 name: Push to custom branches
 run-name: Push to ${{ github.ref }} by @${{ github.actor }}
 
-on:
-  push:
-    branches-ignore:
-      - master
-      - release
+on: push
+#   push:
+#     branches-ignore:
+#       - master
+#       - release
 
 concurrency:
   group: push-${{ github.ref }}-1

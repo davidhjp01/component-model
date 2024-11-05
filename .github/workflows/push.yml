@@ -1,7 +1,7 @@
 name: Push to custom branches
 run-name: Push to ${{ github.ref }} by @${{ github.actor }}
 
-on: push
+on:
   push:
     branches-ignore:
       - master

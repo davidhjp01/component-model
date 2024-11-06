@@ -108,7 +108,7 @@ def init_model_variables():
     """Define model and a few variables for various tests"""
     mod = Model("MyModel")
     assert mod.name == "MyModel"
-    assert mod.ureg is not None
+    # assert mod.ureg is not None
 
     myInt = Variable(
         mod,

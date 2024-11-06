@@ -7,7 +7,7 @@ from math import acos, atan2, cos, degrees, radians, sin, sqrt
 from typing import Any, Callable, TypeAlias
 
 import numpy as np
-from pint import Quantity  # management of units
+from pint import Quantity, UnitRegistry  # management of units
 from pythonfmu.enums import Fmi2Causality as Causality  # type: ignore
 from pythonfmu.enums import Fmi2Variability as Variability  # type: ignore
 from pythonfmu.variables import ScalarVariable  # type: ignore
@@ -20,6 +20,7 @@ PyType: TypeAlias = str | int | float | bool | Enum
 Numeric: TypeAlias = int | float
 Compound: TypeAlias = tuple | list | np.ndarray
 
+ureg = UnitRegistry()  # noqa: F821
 
 class Check(IntFlag):
     """Flags to denote how variables should be checked with respect to units and range.
@@ -577,9 +578,9 @@ class Variable(ScalarVariable):
             return (tuple(_val), tuple(_ub), None if _disp is None else tuple(_disp))
 
         elif isinstance(quantity, str):  # only string variable make sense to disect
-            assert self.model.ureg is not None, f"UnitRegistry not found, while providing units: {quantity}"
+            assert ureg is not None, f"UnitRegistry not found, while providing units: {quantity}"
             try:
-                q = self.model.ureg(quantity)  # parse the quantity-unit and return a Pint Quantity object
+                q = ureg(quantity)  # parse the quantity-unit and return a Pint Quantity object
                 if isinstance(q, (int, float)):
                     return q, "", None  # integer or float variable with no units provided
                 elif isinstance(q, Quantity):  # pint.Quantity object
@@ -609,7 +610,7 @@ class Variable(ScalarVariable):
         else:  # calculate the conversion functions
             # we generate a second value and calculate the straight line conversion function
             # did not find a better way in pint
-            q2 = self.model.ureg.Quantity(10.0 * (q.magnitude + 10.0), q.units)
+            q2 = ureg.Quantity(10.0 * (q.magnitude + 10.0), q.units)
             qb2 = q2.to_base_units()
             a = (qb.magnitude * q2.magnitude - qb2.magnitude * q.magnitude) / (q2.magnitude - q.magnitude)
             b = (qb2.magnitude - qb.magnitude) / (q2.magnitude - q.magnitude)

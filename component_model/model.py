@@ -42,6 +42,7 @@ class ModelAnimationError(Exception):
 
     pass
 
+ureg = UnitRegistry()
 
 class Model(Fmi2Slave):
     """Defines a model complying to the `FMI standard <https://fmi-standard.org/>`_,
@@ -127,7 +128,6 @@ class Model(Fmi2Slave):
         if guid is not None:
             self.guid = guid
         # use a common UnitRegistry for all variables:
-        self.ureg = UnitRegistry(system=unit_system, cache_folder=".pint_cache")
         self.copyright, self.license = self.make_copyright_license(copyright, license)
         if default_experiment is None:  # PythonFMU.DefaultExperiment not used!
             self.default_experiment = {"startTime": 0, "stopTime": 1.0, "stepSize": 0.01}
@@ -456,7 +456,7 @@ class Model(Fmi2Slave):
         """Make the xml element for the unit definitions used in the model. See FMI 2.0.4 specification 2.2.2."""
         defs = ET.Element("UnitDefinitions")
         for u in self._units:
-            ubase = self.ureg(u).to_base_units()
+            ubase = ureg(u).to_base_units()
             dim = ubase.dimensionality
             exponents = {}
             for key, value in {
@@ -476,12 +476,12 @@ class Model(Fmi2Slave):
                 # udeg = str(ubase.units).replace("radian", "degree")
                 # print("EXPONENT", ubase.units, udeg, log(ubase.magnitude), log(self.ureg('degree').to_base_units().magnitude))
                 exponents.update(
-                    {"rad": str(int(log(ubase.magnitude) / log(self.ureg("degree").to_base_units().magnitude)))}
+                    {"rad": str(int(log(ubase.magnitude) / log(ureg("degree").to_base_units().magnitude)))}
                 )
 
             unit = ET.Element("Unit", {"name": u})
             base = ET.Element("BaseUnit", exponents)
-            base.attrib.update({"factor": str(self.ureg(u).to_base_units().magnitude)})
+            base.attrib.update({"factor": str(ureg(u).to_base_units().magnitude)})
             unit.append(base)
             for du in self._units[u]:  # list also the displays (if defined)
                 unit.append(

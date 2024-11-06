@@ -111,62 +111,7 @@ class BouncingBallXZ(Model):
     #        self.register_variable( String("mdShort", causality=Fmi2Causality.local))
 
     def enter_initialization_mode(self):
-        self.v = self.v0
-        self.energy = 9.81 * self.x[1] + 0.5 * np.dot(self.v, self.v)
-        self.period = 2 * self.v[1] / 9.81  # may change when energy is taken out of the system
         return True
 
     def do_step(self, current_time, step_size):
-        #        print("ENERGY", self.energy, type(self.energy))
-        def bounce_loss(v0):
-            if self.bounceFactor == 1.0:
-                return v0
-            if abs(v0) < self.v_min:
-                v0 = 0.0
-                self.energy = 0.0
-                self.period = 0.0
-            else:
-                v0 *= self.bounceFactor  # speed with which it leaves the ground
-                self.energy = v0 * v0 / 2
-                self.period = 2 * v0 / 9.81
-            return v0
-
-        self.x[0] += self.v[0] * step_size
-        y = self.x[1] + self.v[1] * step_size - 9.81 / 2 * step_size**2
-        if y <= 0 and self.v[1] < 0:  # bounce
-            # time when it hits the ground:
-            t0 = self.v[1] / 9.81 * (1 - sqrt(1 + 2 * self.x[1] * 9.81 / self.v[1] ** 2))
-            # more exact than self.v_y - 9.81* t0 # speed when jumps off the ground (without energy loss):
-            v0 = sqrt(2 * self.energy)
-            v0 = bounce_loss(v0)  # check energy loss during bouncing
-            # print("BOUNCE", current_time, self.x.value , t0, v0)
-            tRest = step_size - t0
-            while True:
-                if tRest < self.period:  # cannot do a whole bounce in the remaining time
-                    break
-                if self.drag != 0:
-                    raise NotImplementedError(
-                        "Bouncing a whole period is not implemented when drag is involved. Try choosing smaller time steps."
-                    )
-                v0 = bounce_loss(v0)
-                if v0 == 0.0:  # movement stopped (numerical issues would otherwise start an oscillation)
-                    tRest = 0.0
-                    break
-                else:
-                    tRest -= self.period
-
-            self.x[1] = v0 * tRest - 9.81 / 2 * tRest * tRest  # height end of step
-            self.v[1] = v0 - 9.81 * tRest  # speed end of step
-        else:
-            self.v[1] -= 9.81 * step_size
-            self.x[1] = y
-        if self.drag != 0:
-            fac = 1 - self.drag * np.linalg.norm(self.v) * step_size
-            self.v *= fac
-            self.energy = 9.81 * self.x[0] + 0.5 * np.dot(self.v, self.v)
-            # print("FAC", fac, self.v, self.energy)
-        #         e = 9.81*self.x[1] + 0.5*self.v[1]**2
-        #         if  abs( e-self.energy) > 1e-6: # and  and
-        #             print("Energy leak", current_time, e, self.energy)
-        #             self.energy = e
         return True

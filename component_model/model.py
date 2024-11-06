@@ -127,7 +127,7 @@ class Model(Fmi2Slave):
         if guid is not None:
             self.guid = guid
         # use a common UnitRegistry for all variables:
-        self.ureg = UnitRegistry(system=unit_system)
+        self.ureg = UnitRegistry(system=unit_system, cache_folder=".pint_cache")
         self.copyright, self.license = self.make_copyright_license(copyright, license)
         if default_experiment is None:  # PythonFMU.DefaultExperiment not used!
             self.default_experiment = {"startTime": 0, "stopTime": 1.0, "stepSize": 0.01}
